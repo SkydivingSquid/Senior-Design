@@ -1,0 +1,55 @@
+<h1 class="text-center">George Eliot Journal Search</h1>
+<p>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function() {
+      $("#search").click(function() {
+        var searchTerm = $("#keyword").val();
+
+        $.ajax({
+          type: "GET",
+          url: 
+"https://georgeeliotarchive.org/files/original/dc1841363ffb3a1b16c2e5b030d93525.csv",
+          dataType: "text",
+          success: function(data) {
+            var rows = data.split("\n");
+            var headers = rows[0].split(",");
+            var result = "";
+
+            result += "<table><thead><tr>";
+            for (var i = 0; i < 5; i++) {
+              result += "<th>" + headers[i] + "</th>";
+            }
+            result += "</tr></thead><tbody>";
+
+            for (var i = 1; i < rows.length; i++) {
+              var cells = rows[i].split(",");
+
+              for (var j = 0; j < cells.length; j++) {
+                if 
+(cells[j].toLowerCase().includes(searchTerm.toLowerCase())) {
+                  result += "<tr>";
+                  for (var k = 0; k < cells.length; k++) {
+                    result += "<td>" + cells[k] + "</td>";
+                  }
+                  result += "</tr>";
+                  break;
+                }
+              }
+            }
+
+            result += "</tbody></table>";
+
+            if (result.includes("<tr>")) {
+              $("#results").html(result);
+            } else {
+              $("#results").html("No results found.");
+            }
+          }
+        });
+      });
+    });
+  </script>
+<input type="text" id="keyword" /> <button id="search">Keyword 
+Search</button></p>
+<div id="results"></div>
