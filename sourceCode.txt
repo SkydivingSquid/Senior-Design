@@ -1,55 +1,77 @@
-<h1 class="text-center">George Eliot Journal Search</h1>
+<!-- Import Papa Parse library -->
 <p>
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.0/papaparse.min.js"></script>
+</p>
+<!-- Import Bootstrap library for styling -->
+<h1 class="container" style="text-align: center;"><strong>Search George Eliot Journals</strong></h1>
+<p><strong>Welcome:</strong> to the George Eliot Journals page! Here you can search through all 1,878 of George Eliot's journal entries encompassing multiple books and dates.&nbsp;<br /><br /><strong>How to use: <br /></strong>Using the search box below, enter keywords, key-phrases, or dates in YYYY or MM-DD-YYYY format to view all results matching your entry OR query an empty search by pressing ENTER in the search box to view all entries in their entirety.&nbsp;</p>
+<p><strong>Search Box:<br /></strong><input id="search-input" type="text" class="form-control" style="border: 1px solid black; background-color: ghostwhite;" placeholder="Enter keyword to search" />&nbsp;</p>
+<div class="container" h1="" style="text-align: center;"><strong>Results:</strong><br />
+<table id="table" class="table table-striped" style="background-color: bisque; border-color: black; border-style: solid;">
+<thead>
+<tr>
+<th>Book</th>
+<th>Date</th>
+<th>Book Pg Number</th>
+<th>PDF Pg Number</th>
+<th>Title</th>
+<th>Entry -&gt;</th>
+</tr>
+</thead>
+<tbody id="table-body"></tbody>
+</table>
+<p></p>
+<p><strong>Source:<br /></strong>All information above is aggregated under free and fair public use from &lt;book source&gt;. Page numbers shown in the results can be used to reference the book.&nbsp;</p>
+</div>
+<p>
 <script>
-    $(document).ready(function() {
-      $("#search").click(function() {
-        var searchTerm = $("#keyword").val();
+    // Use Papa Parse to parse CSV file
+    Papa.parse("https://georgeeliotarchive.org/files/original/10788f9d521bfc3a0a4efbbba07e6cf8.csv", {
+      header: true,
+      download: true,
+      skipEmptyLines: true,
+      complete: function(results) {
+        // Store parsed data in a variable
+        var data = results.data;
 
-        $.ajax({
-          type: "GET",
-          url: 
-"https://georgeeliotarchive.org/files/original/dc1841363ffb3a1b16c2e5b030d93525.csv",
-          dataType: "text",
-          success: function(data) {
-            var rows = data.split("\n");
-            var headers = rows[0].split(",");
-            var result = "";
+        // Listen for changes in the search input
+        document.getElementById("search-input").addEventListener("input", function() {
+          // Clear table body
+          document.getElementById("table-body").innerHTML = "";
 
-            result += "<table><thead><tr>";
-            for (var i = 0; i < 5; i++) {
-              result += "<th>" + headers[i] + "</th>";
-            }
-            result += "</tr></thead><tbody>";
+          // Get the search keyword
+          var keyword = this.value.trim().toLowerCase();
 
-            for (var i = 1; i < rows.length; i++) {
-              var cells = rows[i].split(",");
+          // Filter data based on search keyword
+          var filteredData = data.filter(function(row) {
+            return Object.values(row).some(function(cell) {
+              return cell.toString().toLowerCase().indexOf(keyword) > -1;
+            });
+          });
 
-              for (var j = 0; j < cells.length; j++) {
-                if 
-(cells[j].toLowerCase().includes(searchTerm.toLowerCase())) {
-                  result += "<tr>";
-                  for (var k = 0; k < cells.length; k++) {
-                    result += "<td>" + cells[k] + "</td>";
-                  }
-                  result += "</tr>";
-                  break;
-                }
-              }
-            }
-
-            result += "</tbody></table>";
-
-            if (result.includes("<tr>")) {
-              $("#results").html(result);
-            } else {
-              $("#results").html("No results found.");
-            }
+          // Display "No Results Found" if there are no matching results
+          if (filteredData.length === 0) {
+            var noResultsRow = document.createElement("tr");
+            var noResultsCell = document.createElement("td");
+            noResultsCell.setAttribute("colspan", 14);
+            noResultsCell.textContent = "No Results Found";
+            noResultsRow.appendChild(noResultsCell);
+            document.getElementById("table-body").appendChild(noResultsRow);
+            return;
           }
+
+          // Build table rows for each matching result
+          filteredData.forEach(function(row) {
+            var tableRow = document.createElement("tr");
+            Object.values(row).forEach(function(cell) {
+              var tableCell = document.createElement("td");
+              tableCell.textContent = cell;
+              tableRow.appendChild(tableCell);
+            });
+            document.getElementById("table-body").appendChild(tableRow);
+          });
         });
-      });
+      }
     });
   </script>
-<input type="text" id="keyword" /> <button id="search">Keyword 
-Search</button></p>
-<div id="results"></div>
+</p>
