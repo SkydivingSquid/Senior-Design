@@ -1,77 +1,76 @@
-<!-- Import Papa Parse library -->
-<p>
-<script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.0/papaparse.min.js"></script>
-</p>
-<!-- Import Bootstrap library for styling -->
-<h1 class="container" style="text-align: center;"><strong>Search George Eliot Journals</strong></h1>
-<p><strong>Welcome:</strong> to the George Eliot Journals page! Here you can search through all 1,878 of George Eliot's journal entries encompassing multiple books and dates.&nbsp;<br /><br /><strong>How to use: <br /></strong>Using the search box below, enter keywords, key-phrases, or dates in YYYY or MM-DD-YYYY format to view all results matching your entry OR query an empty search by pressing ENTER in the search box to view all entries in their entirety.&nbsp;</p>
-<p><strong>Search Box:<br /></strong><input id="search-input" type="text" class="form-control" style="border: 1px solid black; background-color: ghostwhite;" placeholder="Enter keyword to search" />&nbsp;</p>
-<div class="container" h1="" style="text-align: center;"><strong>Results:</strong><br />
-<table id="table" class="table table-striped" style="background-color: bisque; border-color: black; border-style: solid;">
-<thead>
-<tr>
-<th>Book</th>
-<th>Date</th>
-<th>Book Pg Number</th>
-<th>PDF Pg Number</th>
-<th>Title</th>
-<th>Entry -&gt;</th>
-</tr>
-</thead>
-<tbody id="table-body"></tbody>
-</table>
-<p></p>
-<p><strong>Source:<br /></strong>All information above is aggregated under free and fair public use from &lt;book source&gt;. Page numbers shown in the results can be used to reference the book.&nbsp;</p>
-</div>
-<p>
-<script>
-    // Use Papa Parse to parse CSV file
-    Papa.parse("https://georgeeliotarchive.org/files/original/10788f9d521bfc3a0a4efbbba07e6cf8.csv", {
-      header: true,
-      download: true,
-      skipEmptyLines: true,
-      complete: function(results) {
-        // Store parsed data in a variable
-        var data = results.data;
-
-        // Listen for changes in the search input
-        document.getElementById("search-input").addEventListener("input", function() {
-          // Clear table body
-          document.getElementById("table-body").innerHTML = "";
-
-          // Get the search keyword
-          var keyword = this.value.trim().toLowerCase();
-
-          // Filter data based on search keyword
-          var filteredData = data.filter(function(row) {
-            return Object.values(row).some(function(cell) {
-              return cell.toString().toLowerCase().indexOf(keyword) > -1;
-            });
-          });
-
-          // Display "No Results Found" if there are no matching results
-          if (filteredData.length === 0) {
-            var noResultsRow = document.createElement("tr");
-            var noResultsCell = document.createElement("td");
-            noResultsCell.setAttribute("colspan", 14);
-            noResultsCell.textContent = "No Results Found";
-            noResultsRow.appendChild(noResultsCell);
-            document.getElementById("table-body").appendChild(noResultsRow);
-            return;
-          }
-
-          // Build table rows for each matching result
-          filteredData.forEach(function(row) {
-            var tableRow = document.createElement("tr");
-            Object.values(row).forEach(function(cell) {
-              var tableCell = document.createElement("td");
-              tableCell.textContent = cell;
-              tableRow.appendChild(tableCell);
-            });
-            document.getElementById("table-body").appendChild(tableRow);
-          });
+<!-- Load Bootstrap CSS -->
+<div class="container">
+  <p><strong>Welcome&nbsp;</strong>to the George Eliot Journals page! Here you can search through all 1,878 of George Eliot's journal entries encompassing multiple books and dates. We hope you find this feature helpful and easy to use.&nbsp;</p>
+  <p><strong>Displayed Information:</strong><br />Every query will return 4 columns of information. The date of the journal entry, the source which correlates to what diary the journal entry can be found in, a reference page number from the book &lt;TITLE INFORMATION HERE&gt; for ease of cross referencing, and the journal entry itself.&nbsp;</p>
+  <p><strong>How to use:<br /></strong>Using the search box below, enter keywords, key-phrases, or dates in YYYY or MM-DD-YYYY format to view all results matching your entry.<strong></strong></p>
+  <form id="searchForm" class="form-inline">
+  <div class="form-group"><strong></strong></div>
+  <div class="form-group"><label for="searchTerm"><strong>Search Term:</strong></label> <input type="text" class="form-control" id="searchTerm" name="searchTerm" placeholder="Enter search term" /> <button type="submit" class="btn btn-primary">Search</button></div>
+  </form>
+  <p id="resultCount"></p>
+  <table class="table table-striped" style="border-style: groove; border-color: black; background-color: bisque; table-layout: fixed;"><colgroup> <col width="130px" /> <col width="150px" /> <col width="100px" /> </colgroup>
+  <thead>
+  <tr>
+  <th>Date</th>
+  <th>Source</th>
+  <th>Page #</th>
+  <th>Journal Entry</th>
+  </tr>
+  </thead>
+  <tbody id="data"></tbody>
+  </table>
+  </div>
+  <!-- Load jQuery and Papa.parse() -->
+  <p>
+  <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+  <script>
+   $(document).ready(function() {
+    $("#searchForm").submit(function(event) {
+      event.preventDefault();
+      var searchTerm = $("#searchTerm").val();
+      searchTerm = searchTerm.trim()
+      if (searchTerm.length !== 0) {
+      var url = "https://georgeeliotarchive.org/admin/items/browse?search=" + encodeURIComponent(searchTerm) + "&advanced%5B0%5D%5Bjoiner%5D=and&advanced%5B0%5D%5Belement_id%5D=&advanced%5B0%5D%5Btype%5D=&advanced%5B0%5D%5Bterms%5D=&range=&collection=&type=20&output=csv";
+  }
+     else {
+     var url = "https://georgeeliotarchive.org/admin/items/browse?search=&advanced%5B0%5D%5Bjoiner%5D=and&advanced%5B0%5D%5Belement_id%5D=&advanced%5B0%5D%5Btype%5D=&advanced%5B0%5D%5Bterms%5D=&range=&collection=17&type=20&tags=&public=&featured=&submit_search=Search+for+items&output=csv"
+  }
+      $.get(url, function(data) {
+        var parsedData = Papa.parse(data).data;
+        parsedData.shift(); // Remove header row
+        parsedData.sort(function(a, b) {
+          return new Date(a[8]) - new Date(b[8]); // Sort by date column
         });
-      }
+        var html = "";
+        var resultCount = 0;
+        for (var i = 0; i < parsedData.length; i++) {
+          if ((parsedData[i][8] && parsedData[i][8].toLowerCase().includes(searchTerm.toLowerCase())) || (parsedData[i][31] && parsedData[i][31].toLowerCase().includes(searchTerm.toLowerCase()))) {
+            var content = parsedData[i][31];
+            if (parsedData[i][8] && (parsedData[i][8].toLowerCase().includes(searchTerm.toLowerCase()) || searchTerm.match(/^\d{4}(-\d{2}){0,2}$/))) {
+              content = parsedData[i][31];
+            } else if (parsedData[i][31].toLowerCase().includes(searchTerm.toLowerCase())) {
+              var sentenceArray = parsedData[i][31].split(/(?<!\w\.\w.)(?<![A-Z][a-z]\.)(?<=\.|\?)\s/g);
+              var keywordIndex = sentenceArray.findIndex(function(sentence) {
+                return sentence.toLowerCase().includes(searchTerm.toLowerCase());
+              });
+              var startIndex = Math.max(0, keywordIndex - 3);
+              var endIndex = Math.min(sentenceArray.length - 1, keywordIndex + 3);
+              var previewArray = sentenceArray.slice(startIndex, endIndex + 1);
+              var preview = previewArray.join(' ');
+              preview = preview.replace(new RegExp(searchTerm, "gi"), '<span class="highlight">$&</span>');
+              content = preview;
+            }
+            var pageNumber = parsedData[i][6].split("^^")[1];
+            var source = parsedData[i][6].split("^^")[0];
+            html += "<tr><td>" + parsedData[i][8] + "</td><td>" + source + "</td><td>" + pageNumber + "</td><td>" + content.replace(new RegExp(searchTerm, "gi"), '<span class="highlight">$&</span>') + "</td></tr>";
+            resultCount++;
+          }
+        }
+        $("#data").html(html);
+        $("#resultCount").html(resultCount + " results found.");
+      });
     });
+  });
   </script>
-</p>
+  </p>
